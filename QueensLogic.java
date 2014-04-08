@@ -64,19 +64,36 @@ public class QueensLogic {
     	//TODO implement implications here
     	// ??? LOOKS DONE TO ME...
     	
+//    	boardBDD.one().imp(rule);
+    	
+    	System.out.println((row * x + col) + " ###################### ");
+    	System.out.println(rule);    	
 //    	System.out.println("RULE FOR: " + row + " / " + col + " -- " + (row * x + col));
     	
     	// position implies all those conjunctions of nith
 //    	rule.andWith(horizontalRule(row));
-//    	rule.andWith(verticalRule(col));
+    	rule.andWith(verticalRule(row * x + col));
     	rule.andWith(diagonalRule(col, row));
     	
-//    	boardBDD.ithVar(x*row +col).imp(rule);
+//    	boardBDD.ithVar(x*row +col).imp(verticalRule(row*x+col));
+    	 
+    	return rule;
     	
-    	System.out.println((row * x + col) + " ###################### ");
-    	
-    	return  boardBDD.ithVar(x*row +col).imp(rule);
-    	
+    }
+    
+    private BDD verticalRule(int varId){
+    	BDD rule = boardBDD.one();
+    	// loop in the same column and add each position as nith to the conjunction
+    	int col = varId % x;
+    	for(int row = 0; row < y; row++) {
+	    	if(varId != row * x + col) {
+	    		System.out.println(row + " / " + col + " -- " + (row * x + col));
+	    		rule.andWith(boardBDD.nithVar(row * x + col));
+	    	}
+    	}
+    	System.out.println(rule);
+//    	return boardBDD.ithVar(varId).imp(rule);
+    	return rule;
     }
     
     private BDD diagonalRule(int positionCol, int positionRow){
@@ -99,20 +116,7 @@ public class QueensLogic {
     	}
     	return rule;
     }
-    
-    private BDD verticalRule(int col){
-    	BDD rule = boardBDD.one();
-    	// loop in the same column and add each position as nith to the conjunction
-    	for(int row = 0; row < y; row++) {    		
-	    	// int pos = col + row * x;
-	    	//if(col != row) {
-	    		System.out.println(row + " / " + col + " -- " + (row * x + col));
-	    		rule.andWith(boardBDD.nithVar(row * x + col));
-	    	//}
-    	}
-    	return rule;
-    }
-    
+        
     
     private BDD horizontalRule(int positionRow){
     	//System.out.println(positionRow);
@@ -185,7 +189,7 @@ public class QueensLogic {
              marriedQueens.add(row * x + column);
          }
          
-         boolean solved = false; //prenupt.pathCount() == 1; //if there's only one path leading to TRUE in the restricted BDD, consider the problem solved
+         boolean solved = prenupt.pathCount() == 1; //if there's only one path leading to TRUE in the restricted BDD, consider the problem solved
          
          for(int r = 0; r < y; r++) { //foreach column
 			 for(int c = 0; c < x; c++) { //foreach row
@@ -195,8 +199,12 @@ public class QueensLogic {
 				 
 				 // boardBDD.printAll();
 				 
+				 
+				 
 				//if a queen here makes the problem unsolvable, add a red cross to the board
 				 if(prenupt.restrict(boardBDD.ithVar(r * x + c)).isZero()) { 
+//					 System.out.println(prenupt.restrict(boardBDD.ithVar(r * x + c)));
+					 System.out.println(rules);
 					 board[c][r] = -1;
 				 } else if (solved) {
 					 board[c][r] = 1;
