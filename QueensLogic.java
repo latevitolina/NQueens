@@ -46,7 +46,7 @@ public class QueensLogic {
     }
     
     
-    public BDD setRules(){
+    public void setRules(){
     	boardBDD.setVarNum(positions);
     	for(int i=0; i<x; i++){
     		for (int j=0; j<y; j++){
@@ -56,7 +56,7 @@ public class QueensLogic {
     	}
 //    	rules.andWith(oneQueenPerRowRule());
 //    	boardBDD.printAll();
-    	return rules;
+//    	return rule;
     }
 
     private BDD addPositionRules(int col, int row){
@@ -73,9 +73,9 @@ public class QueensLogic {
     	// position implies all those conjunctions of nith
 //    	rule.andWith(horizontalRule(row));
     	rule.andWith(verticalRule(row * x + col));
-    	rule.andWith(diagonalRule(col, row));
-    	
-//    	boardBDD.ithVar(x*row +col).imp(verticalRule(row*x+col));
+//    	rule.andWith(diagonalRule(col, row));
+      	System.out.println(rule);
+    	boardBDD.ithVar(x*row +col).imp(rule);
     	 
     	return rule;
     	
@@ -91,7 +91,6 @@ public class QueensLogic {
 	    		rule.andWith(boardBDD.nithVar(row * x + col));
 	    	}
     	}
-    	System.out.println(rule);
 //    	return boardBDD.ithVar(varId).imp(rule);
     	return rule;
     }
@@ -154,7 +153,9 @@ public class QueensLogic {
     	for (int q : marriedQueens){
     		r.andWith(boardBDD.ithVar(q));
 //    		boardBDD.printAll();
-//    		System.out.println(prenupt);
+//    		System.out.println(rules.restrict(r));
+
+    		System.out.println(r);
     	}
     	return r;
     }
@@ -204,7 +205,8 @@ public class QueensLogic {
 				//if a queen here makes the problem unsolvable, add a red cross to the board
 				 if(prenupt.restrict(boardBDD.ithVar(r * x + c)).isZero()) { 
 //					 System.out.println(prenupt.restrict(boardBDD.ithVar(r * x + c)));
-					 System.out.println(rules);
+//					 System.out.println(rules);
+//					 rules.printSetWithDomains();
 					 board[c][r] = -1;
 				 } else if (solved) {
 					 board[c][r] = 1;
