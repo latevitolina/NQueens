@@ -51,7 +51,7 @@ public class QueensLogic {
     	for(int i=0; i<x; i++){
     		for (int j=0; j<y; j++){
     			// i -> cols; j -> rows
-	    		rules.andWith(addPositionRules(i,j));
+	    		addPositionRules(i,j);
     		}
     	}
 //    	rules.andWith(oneQueenPerRowRule());
@@ -71,14 +71,30 @@ public class QueensLogic {
 //    	System.out.println("RULE FOR: " + row + " / " + col + " -- " + (row * x + col));
     	
     	// position implies all those conjunctions of nith
-//    	rule.andWith(horizontalRule(row));
+    	rule.andWith(horizontalRule(row * x + col));
     	rule.andWith(verticalRule(row * x + col));
-//    	rule.andWith(diagonalRule(col, row));
+    	rule.andWith(diagonalRule(col, row));
       	System.out.println(rule);
-    	boardBDD.ithVar(x*row +col).imp(rule);
+      	
+//    	boardBDD.ithVar(x*row +col).imp(rule);
     	 
     	return rule;
     	
+    }
+    
+    
+    private BDD horizontalRule(int varId){
+    	BDD rule = boardBDD.one();
+    	// loop in the same row, add each place as nith to the conjunction
+    	for(int col = 0; col < x; col++){
+    		int curPos = col + x * (varId / y);
+    		//System.out.println(pos);	
+    		if (curPos == varId) continue;
+    		rule.andWith(boardBDD.nithVar(curPos));
+    	}
+    	rules.andWith(boardBDD.ithVar(varId).imp(rule));
+
+    	return rule;
     }
     
     private BDD verticalRule(int varId){
@@ -87,11 +103,11 @@ public class QueensLogic {
     	int col = varId % x;
     	for(int row = 0; row < y; row++) {
 	    	if(varId != row * x + col) {
-	    		System.out.println(row + " / " + col + " -- " + (row * x + col));
+//	    		System.out.println(row + " / " + col + " -- " + (row * x + col));
 	    		rule.andWith(boardBDD.nithVar(row * x + col));
 	    	}
     	}
-//    	return boardBDD.ithVar(varId).imp(rule);
+    	rules.andWith(boardBDD.ithVar(varId).imp(rule));
     	return rule;
     }
     
@@ -113,24 +129,10 @@ public class QueensLogic {
 		    	col += vector[1];
 	    	}
     	}
+    	rules.andWith(boardBDD.ithVar(positionRow * x + positionCol).imp(rule));
     	return rule;
     }
         
-    
-    private BDD horizontalRule(int positionRow){
-    	//System.out.println(positionRow);
-    	BDD rule = boardBDD.one();
-    	// loop in the same row, add each place as nith to the conjunction
-    	for(int col = 0; col < x; col++){
-    		int pos = col + x * positionRow;
-    		//System.out.println(pos);	
-    		if (pos == positionRow) continue;
-    		rule.andWith(boardBDD.nithVar(pos));
-    	}
-    	
-    	//boardBDD.printAll();
-    	return rule;
-    }
     
     public BDD oneQueenPerRowRule() {
 		BDD rule = boardBDD.one();
