@@ -54,46 +54,34 @@ public class QueensLogic {
 	    		addPositionRules(i,j);
     		}
     	}
-//    	rules.andWith(oneQueenPerRowRule());
+    	rules.andWith(oneQueenPerRowRule());
 //    	boardBDD.printAll();
 //    	return rule;
     }
 
     private BDD addPositionRules(int col, int row){
     	BDD rule = boardBDD.ithVar(row * x + col);
-    	//TODO implement implications here
-    	// ??? LOOKS DONE TO ME...
-    	
-//    	boardBDD.one().imp(rule);
-    	
-    	System.out.println((row * x + col) + " ###################### ");
-    	System.out.println(rule);    	
+//    	System.out.println((row * x + col) + " ###################### ");
+//    	System.out.println(rule);    	
 //    	System.out.println("RULE FOR: " + row + " / " + col + " -- " + (row * x + col));
     	
     	// position implies all those conjunctions of nith
     	rule.andWith(horizontalRule(row * x + col));
     	rule.andWith(verticalRule(row * x + col));
     	rule.andWith(diagonalRule(col, row));
-      	System.out.println(rule);
-      	
-//    	boardBDD.ithVar(x*row +col).imp(rule);
-    	 
+//      	System.out.println(rule);
     	return rule;
-    	
     }
     
     
     private BDD horizontalRule(int varId){
     	BDD rule = boardBDD.one();
-    	// loop in the same row, add each place as nith to the conjunction
     	for(int col = 0; col < x; col++){
     		int curPos = col + x * (varId / y);
-    		//System.out.println(pos);	
     		if (curPos == varId) continue;
     		rule.andWith(boardBDD.nithVar(curPos));
     	}
     	rules.andWith(boardBDD.ithVar(varId).imp(rule));
-
     	return rule;
     }
     
@@ -113,17 +101,13 @@ public class QueensLogic {
     
     private BDD diagonalRule(int positionCol, int positionRow){
     	BDD rule = boardBDD.one();
-
-    	//TODO loop in both diagonals, add each place as nith to the conjunction
+    	// loop in both diagonals, add each place as nith to the conjunction
     	int[][] directions = {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
-
     	//System.out.println("---- " + positionRow  + " -- " + positionCol + " ---");
     	for (int[] vector : directions) {
 	    	int row = positionRow + vector[0];
 	    	int col = positionCol + vector[1];
 	    	while (row >= 0 && row < y && col >= 0 && col < x){
-		    	//array.add(row * x + col);
-		    	//System.out.println(row + " / " + col + " -- " + (row * x + col));
 		    	rule.andWith(boardBDD.nithVar(row * x + col));		    	
 		    	row += vector[0];
 		    	col += vector[1];
@@ -133,7 +117,6 @@ public class QueensLogic {
     	return rule;
     }
         
-    
     public BDD oneQueenPerRowRule() {
 		BDD rule = boardBDD.one();
 		for (int row = 0; row < y; row++) { 
@@ -142,22 +125,16 @@ public class QueensLogic {
 			for (int col = 0; col < x; col++) { 
 				rowRule.orWith(boardBDD.ithVar(row * x + col));
 			}
-
 			rule.andWith(rowRule);
 		}
-
+		rules.andWith(boardBDD.one().imp(rule));
 		return rule;
 	}
     
     private BDD getPrenuptClauses(){
     	BDD r = boardBDD.one();
-//    	System.out.println(marriedQueens);
     	for (int q : marriedQueens){
     		r.andWith(boardBDD.ithVar(q));
-//    		boardBDD.printAll();
-//    		System.out.println(rules.restrict(r));
-
-    		System.out.println(r);
     	}
     	return r;
     }
@@ -167,7 +144,8 @@ public class QueensLogic {
     }
     
     private void divorceQueen(int varId){
-    	
+    	marriedQueens.remove(varId);
+    	updatePrenuptial();
     }
     
     private void marryQueen(int varId){
@@ -176,7 +154,7 @@ public class QueensLogic {
     }
     
     public boolean insertQueen(int column, int row) {        
-        //TODO loop through positions to either add crosses or place the rest of the queens in
+        // loop through positions to either add crosses or place the rest of the queens in
       
          if (board[column][row] == -1) { //clicked red cross, do nothing
              return true;
@@ -184,8 +162,8 @@ public class QueensLogic {
          
          //if satcount == 1 put queens in their places
          if (board[column][row] == 1) { //if queen is already here, remove it
-             //board[column][row] = 0;
-             //divorceQueen(row * x + column);
+             board[column][row] = 0;
+             divorceQueen(row * x + column);
          } else { 	 
         	 board[column][row] = 1; 
              marryQueen(row * x + column);
@@ -194,21 +172,12 @@ public class QueensLogic {
          
          boolean solved = prenupt.pathCount() == 1; //if there's only one path leading to TRUE in the restricted BDD, consider the problem solved
          
-         for(int r = 0; r < y; r++) { //foreach column
-			 for(int c = 0; c < x; c++) { //foreach row
+         for(int r = 0; r < y; r++) { // column
+			 for(int c = 0; c < x; c++) { // row
 				 if(board[c][r] == 1) continue; //if queen is present, skip this space
-				
-				 // System.out.println(r * x + c);
-				 
-				 // boardBDD.printAll();
-				 
-				 
-				 
+
 				//if a queen here makes the problem unsolvable, add a red cross to the board
 				 if(prenupt.restrict(boardBDD.ithVar(r * x + c)).isZero()) { 
-//					 System.out.println(prenupt.restrict(boardBDD.ithVar(r * x + c)));
-//					 System.out.println(rules);
-//					 rules.printSetWithDomains();
 					 board[c][r] = -1;
 				 } else if (solved) {
 					 board[c][r] = 1;
